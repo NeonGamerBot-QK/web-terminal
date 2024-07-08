@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terminal</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xterm/3.14.5/xterm.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/xterm/3.14.5/xterm.css"  />
+</head>
+<style>
+    body,html {
+        margin: 0;
+    }
+    div {
+        height: 100%;
+        padding: 0;
+        margin: 0;
+        width: 100%;
+        /* overflow: hidden; */
+    } 
+</style>
+<body>
+<div id="term"></div>
+</body>
+<script>
+// window.onload = () => {
+    var term = new Terminal({
+        cursorBlink: true
+    });
+    console.log(1)
+    const ws = new WebSocket(`ws://localhost:3000`)
+        term.open(document.getElementById('term'));
+        var curr_line = "";
+      var entries = [];
+    //   term.open(document.getElementById("terminal"));
+      term.write("web shell $ ");
+
+      term.prompt = () => {
+        if (curr_line) {
+          let data = { method: "command", command: curr_line };
+          ws.send(curr_line + '\n');
+        }
+      };
+      term.prompt();
+
+      // Receive data from socket
+      ws.onmessage = msg => {
+        term.write("\r\n" + msg.data);
+        curr_line = "";
+      };
+
+      term.on("key", function(key, ev) {
+        //Enter
+        if (ev.keyCode === 13) {
+          if (curr_line) {
+            entries.push(curr_line);
+            term.write("\r\n");
+            term.prompt();
+          }
+        } else if (ev.keyCode === 8) {
+          // Backspace
+          if (curr_line) {
+            curr_line = curr_line.slice(0, curr_line.length - 1);
+            term.write("\b \b");
+          }
+        } else {
+          curr_line += key;
+          term.write(key);
+        }
+      });
+
+      // paste value
+      term.on("paste", function(data) {
+        curr_line += data;
+        term.write(data);
+      });
+
+// }
+</script>
+</html>
