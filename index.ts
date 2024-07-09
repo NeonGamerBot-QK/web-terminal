@@ -1,5 +1,5 @@
-
 console.log("Hello via Bun!");
+import "dotenv/config"
 import os from "os"
 import path from "path"
 // import pty from "node-pty"
@@ -46,5 +46,5 @@ Bun.serve({
         
     },
     },
-    port: 3000
+    port: process.env.PORT || 3000
 })
